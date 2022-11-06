@@ -5,8 +5,8 @@ import swidgets.STextField;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Date;
-import java.util.TimerTask;
+
+import java.util.*;
 import java.util.Timer;
 
 /** 
@@ -120,8 +120,8 @@ public class Example {
     public static SLabel long_ub= new SLabel(Long_UB);
 
     ///Data stored in STextField
-    static STextField Tracker0_lat= new STextField("test lat 0");
-    static STextField Tracker1_lat=new STextField("testlat 0");
+    static STextField Tracker0_lat= new STextField("");
+    static STextField Tracker1_lat=new STextField("");
     static STextField Tracker2_lat=new STextField("");
     static STextField Tracker3_lat=new STextField("");
     static STextField Tracker4_lat=new STextField("");
@@ -157,17 +157,21 @@ public class Example {
     static STextField lat_upper_bound =new STextField("90");
     static STextField long_lower_bound= new STextField("-180");
     static STextField long_upper_bound= new STextField("180");
-    static STextField b1=new STextField("-90");
-    static STextField b2=new STextField("90");
-    static STextField b3=new STextField("-180");
-    static STextField b4=new STextField("180");
-
+    static STextField b1=new STextField("");
+    static STextField b2=new STextField("");
+    static STextField b3=new STextField("");
+    static STextField b4=new STextField("");
     static SButton Set= new SButton("Set");
+
     static Double[] distance = new Double[10];
 
     static double currentLatitude = 0;
     static double currentLongitude = 0;
     static double currentaltitude = 0;
+    static int counter =0;
+    static String combine ;
+//    LocalTime lt= LocalTime.now();
+static Timer  current_time = new Timer();
     public static void main(String[] args)
 
     {
@@ -181,21 +185,43 @@ public class Example {
 
         for(Stream<GpsEvent> s : streams){
             s.listen((GpsEvent ev) -> {
-                Long start = new Date().getTime();
-                Long end = start + 3000;
-//                System.out.println(ev);
-                 if (start.compareTo(end) < 0) {
-                    start = new Date().getTime();
-                    end = start + 3000;
-                    Front_end(ev, true);
-                }
-                else {
-                    Front_end(ev, false);
-                }
+        //Print the current stream if needed
+        //System.out.println(ev);
+                //Task 1
+                    Front_end(ev);
+                    // Task 2
+                    Update_timecheck(ev);
+
+
             } );
         }
 
-//        Tracker0.se
+        //Task 3
+        for(Stream<GpsEvent> s : streams){
+            s.listen((GpsEvent ev1) ->
+            {
+                ArrayList<String> temp= new ArrayList<>();
+                //putting the text receieved from STEXT field
+                    temp.add(lat_lower_bound.getText());
+                    temp.add(lat_upper_bound.getText());
+                    temp.add(long_lower_bound.getText());
+                    temp.add(long_upper_bound.getText());
+                    System.out.println(temp);
+                    double d1=Double.parseDouble(temp.get(0));
+                    double d2=Double.parseDouble(temp.get(1));
+                    double d3=Double.parseDouble(temp.get(2));
+                    double d4=Double.parseDouble(temp.get(3));
+                    //Setting the FilterEvent field according to the condition
+                 if(ev1.latitude > d1 && ev1.latitude<d2 && ev1.longitude > d3 && ev1.longitude<d4)
+                 {
+                     String tempo=ev1.name+','+ev1.latitude+','+ev1.longitude+','+ev1.altitude;
+                     System.out.println(tempo);
+//                     Set.sClicked.map(u->Filtered_Event_text.setText(tempo));
+                 }
+
+
+            });}
+//
         FlowLayout fl= new FlowLayout();
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -358,19 +384,11 @@ public class Example {
         frame.setVisible(true);
 
     }
-        static String combine ;
 
-    public static void Front_end(GpsEvent ev, boolean isEnded)
+
+    public static void Front_end(GpsEvent ev)
     {
-       if (isEnded) {
-           combine=ev.name+','+ev.latitude+','+ev.longitude+',';
-       }
-       else {
-           combine = "";
-       }
-     Latest_Event_text.setText(combine);
-     Filtered_Event_text.setText(combine);
-
+//            set.Sclicked.map()
 
         if (ev.name.replace("Tracker", "").equals("0")) {
             distance[0] = 2 * 6378100 * Math.asin(Math.sqrt((Math.pow(Math.sin((currentLatitude - ev.latitude) / 2), 2) + (Math.cos(currentLatitude) * Math.cos(ev.latitude) * (Math.pow(Math.sin((currentLongitude - ev.longitude) / 2), 2))))));
@@ -379,6 +397,7 @@ public class Example {
             Tracker0_lat.setText(String.valueOf(ev.latitude));
             Tracker0_long.setText(String.valueOf(ev.longitude));
             Tracker0_dist.setText(String.valueOf(distance[0]));
+
         } else if (ev.name.replace("Tracker", "").equals("1")) {
             distance[1] = 2 * 6378100 * Math.asin(Math.sqrt((Math.pow(Math.sin((currentLatitude - ev.latitude) / 2), 2) + (Math.cos(currentLatitude) * Math.cos(ev.latitude) * (Math.pow(Math.sin((currentLongitude - ev.longitude) / 2), 2))))));
             distance[1] = Math.sqrt(Math.pow(distance[1], 2) + Math.pow((currentaltitude * 0.3048 - ev.altitude * 0.3048), 2));
@@ -436,11 +455,26 @@ public class Example {
             Tracker9_long.setText(String.valueOf(ev.longitude));
             Tracker9_dist.setText(String.valueOf(distance[9]));
         }
-//        else if(){
-//            combine=ev.name+','+ev.latitude+','+ev.longitude+',';
-//            Latest_Event_text.setText(combine);
+//        else if(Set.sClicked)
+//      else if(){
+
 //            Filtered_Event_text.setText(combine);
 //        }
+//            else if(Set.sClicked())
+    }
+    public static void Update_timecheck(GpsEvent ev)
+    {
+        combine=ev.name+','+ev.latitude+','+ev.longitude+','+ev.altitude;
+        Latest_Event_text.setText(combine);
+        current_time.cancel();
+//        timerTask.cancel();
+        TimerTask timerTask= new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("");
+
+            }
+        };
     }
 
 }
